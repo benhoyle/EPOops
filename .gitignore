@@ -1,0 +1,6 @@
+*.pkl
+*.txt
+*.ini
+*.xml
+*.svg
+*.py[cod]
