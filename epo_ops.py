@@ -1,4 +1,8 @@
 # Python 2.7 and 3+ Version
+
+# To support print as a function in Python 2.6+
+from __future__ import print_function
+
 try:
     import configparser
 except ImportError:
@@ -8,9 +12,6 @@ import requests
 import base64
 from datetime import datetime
 import os
-
-# To support print as a function in Python 2.6+
-from __future__ import print_function
 
 # Definitions
 HOST = "ops.epo.org"
@@ -45,10 +46,16 @@ class EPOops():
         self.authorise()
     
     def authorise(self):
-        b64string = base64.b64encode(":".join([self.consumer_key, self.consumer_secret]))
-        params = urllib.urlencode({'grant_type' : 'client_credentials'})
+        string_to_encode = ":".join([self.consumer_key, self.consumer_secret])
+        b64string = base64.b64encode(string_to_encode.encode())
+        try:
+            # For Python 3>
+            params = urllib.parse.urlencode({'grant_type' : 'client_credentials'})
+        except AttributeError:
+            # If Python < 3
+            params = urllib.urlencode({'grant_type' : 'client_credentials'})
         headers = {
-            "Authorization" : "Basic %s" % b64string,
+            "Authorization" : "Basic %s" % b64string.decode('utf-8'),
             "Accept" : "application/json",
             "Accept-Encoding": "utf-8",
             "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8",
@@ -61,6 +68,7 @@ class EPOops():
             self.access_token = r.json()['access_token']
         except:
             print (str(r.status_code))
+            print (r.text)
         
     def build_request(self, data_url):
         headers = {
@@ -108,7 +116,19 @@ class EPOops():
         """ Get published description for application if it exists.
         param int publication_number: publication number for application in EPO OPS form"""
         #http://ops.epo.org/3.1/rest-services/published-data/publication/epodoc/EP2197188/description
-        pass
+        number_type = "publication"
+        data_type   = "description"
+        data_url = "".join(["/3.1/rest-services/published-data/", number_type, "/epodoc/", publication_number, "/", data_type])
+        
+        status_code, response = self.make_query(data_url)
+        
+        return status_code, response
+        
+        #if status_code == 200:
+            #claim_text = response["ops:world-patent-data"]["ftxt:fulltext-documents"]["ftxt:fulltext-document"]["claims"]["claim"]["claim-text"]
+            #return claim_text
+        #else:
+            #return status_code, response
 
     def get_published_claims(self, publication_number):
         """ Get published claims for a published patent application.
