@@ -33,6 +33,22 @@ def safeget(dct, *keys):
             return None
     return dct
 
+def keysearch(d, key):
+    """Recursive function to look for first occurence of key in multi-level dict. 
+    param dict d: dictionary to process
+    param string key: key to locate"""
+    if key in d:
+        return d[key]
+    else:
+        if isinstance(d, dict):
+            for k in d:
+                return keysearch(d[k], key)
+        else:
+            if isinstance(d, list):
+                for i in d:
+                    return keysearch(i, key)
+
+
 class EPOops():
     
     def __init__(self):
@@ -122,13 +138,11 @@ class EPOops():
         
         status_code, response = self.make_query(data_url)
         
-        return status_code, response
-        
-        #if status_code == 200:
-            #claim_text = response["ops:world-patent-data"]["ftxt:fulltext-documents"]["ftxt:fulltext-document"]["claims"]["claim"]["claim-text"]
-            #return claim_text
-        #else:
-            #return status_code, response
+        if status_code == 200:
+            return keysearch(response, 'p')
+            
+        else:
+            return status_code, response
 
     def get_published_claims(self, publication_number):
         """ Get published claims for a published patent application.
