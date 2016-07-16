@@ -37,16 +37,22 @@ def keysearch(d, key):
     """Recursive function to look for first occurence of key in multi-level dict. 
     param dict d: dictionary to process
     param string key: key to locate"""
-    if key in d:
-        return d[key]
-    else:
-        if isinstance(d, dict):
-            for k in d:
-                return keysearch(d[k], key)
+ 
+    if isinstance(d, dict):
+        if key in d:
+            return d[key]
         else:
-            if isinstance(d, list):
-                for i in d:
-                    return keysearch(i, key)
+            if isinstance(d, dict):
+                for k in d:
+                    found = keysearch(d[k], key)
+                    if found:
+                        return found
+            else:
+                if isinstance(d, list):
+                    for i in d:
+                        found = keysearch(d[k], key)
+                        if found:
+                            return found
 
 
 class EPOops():
@@ -139,8 +145,11 @@ class EPOops():
         status_code, response = self.make_query(data_url)
         
         if status_code == 200:
-            return keysearch(response, 'p')
-            
+            result = keysearch(response, 'description')
+            if result:
+                return "\n".join(r['$'] for r in result['p'])
+            else:
+                return response
         else:
             return status_code, response
 
