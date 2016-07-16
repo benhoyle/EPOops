@@ -209,6 +209,15 @@ class EPOops():
             doc_no = None
         return doc_no
         
+    def appln_to_pub(self, country_code, application_no, filing_date = None):
+        """ Get a publication number for a given application number. """
+        epodoc_no = self.convert_number(country_code, application_no)
+        if epodoc_no:
+            appln_data = self.get_data(epodoc_no, number_type="application", data_type="biblio")
+            clean_data = self.clean_data(appln_data)
+            if clean_data["publication"]:
+                return clean_data["publication"][0]['number']
+    
     def clean_data(self, data):
         """ Flatten data structure holding key patent information.
         param dict data: dictionary from parsed JSON"""
